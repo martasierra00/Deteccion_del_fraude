@@ -1,6 +1,6 @@
 ---
 title: "Fraude"
-author: "Marta Sierra 18401"
+author: "Marta Sierra"
 date: "2023-06-16"
 output:
   word_document: default
