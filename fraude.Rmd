@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 
 ```{r}
-setwd("C:/Users/usuario/OneDrive - Universidad Politécnica de Madrid/Escritorio/etsii/1_APROBADAS/4/A_datos/Archivos de datos")
+setwd("C:/Users/usuario/OneDrive - Universidad Politécnica de Madrid/Escritorio/etsii)
 
 #librerias usadas en el código
 library(foreign)
