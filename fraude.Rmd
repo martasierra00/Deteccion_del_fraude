@@ -1,0 +1,79 @@
+---
+title: "Fraude"
+author: "Marta Sierra 18401"
+date: "2023-06-16"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+```{r}
+setwd("C:/Users/usuario/OneDrive - Universidad Politécnica de Madrid/Escritorio/etsii/1_APROBADAS/4/A_datos/Archivos de datos")
+
+#librerias usadas en el código
+library(foreign)
+library(randomForest)
+library(caret)
+library(ggplot2)
+
+# Leer el archivo ARFF a partir de la línea 301
+lineas = readLines("credit_fraud.arff")
+lineas = lineas[301:length(lineas)]
+data = read.csv(text = paste(lineas, collapse = "\n"), header = FALSE)
+
+# Adjunto nombre a las columnas
+colnames(data)=c("over_draft","credit_usage", "credit_history","purpose","current_balance", "Average_Credit_Balance", "employment","location","personal_status","other_parties", "residence_since", "property_magnitude", "cc_age", "other_payment_plans", "housing" , "existing_credits", "job" , "num_dependents","own_telephone", "foreign_worker", "class")
+View(data)
+
+# Nombro las columnas correspondientes como no númericas
+nombres_variables =c("over_draft", "credit_history","purpose", "Average_Credit_Balance", "employment","personal_status","other_parties", "property_magnitude", "other_payment_plans", "housing" , "job" ,"own_telephone", "foreign_worker", "class")
+for (nombre in nombres_variables) {
+  data[[nombre]] = factor(data[[nombre]])
+}
+```
+
+```{r}
+# Creo el modelo de Random Forest
+model = randomForest(class ~ ., data = data)
+varImpPlot(model)
+importancia = importance(model)
+importancia
+
+```
+
+```{r}
+# Validación del modelo mediante validación cruzada
+set.seed(123)
+cv=trainControl(method = "cv", number = 5)
+modelo_cv = train(class ~ ., data = data, method = "rf", trControl = cv)
+metricas_cv = modelo_cv$results
+df_metricas = data.frame(mtry = metricas_cv$mtry,
+                          Accuracy = metricas_cv$Accuracy,
+                          Kappa = metricas_cv$Kappa,
+                          AccuracySD = metricas_cv$AccuracySD,
+                          KappaSD = metricas_cv$KappaSD)
+
+# Gráfico para visualizar la validación
+ggplot(df_metricas, aes(x = mtry)) +
+  geom_line(aes(y = Accuracy, color = "Accuracy")) +
+  geom_line(aes(y = Kappa, color = "Kappa")) +
+  geom_line(aes(y = AccuracySD, color = "AccuracySD")) +
+  geom_line(aes(y = KappaSD, color = "KappaSD")) +
+  labs(x = "mtry", y = "Valor de la métrica", color = "Métrica") +
+  scale_color_manual(values = c("Accuracy" = "blue", "Kappa" = "red", 
+                                "AccuracySD" = "green", "KappaSD" = "purple")) +
+  theme_minimal()
+```
+
+```{r}
+# validación del modelo según la Matriz de confusión
+predicciones = predict(modelo_cv, newdata = data)
+matriz_confusion = confusionMatrix(predicciones, data$class)
+print(matriz_confusion)
+
+```
